@@ -53,18 +53,24 @@ class Worker {
 }
 
 class Director extends Worker {
+    name() { return "Директор" }
+
     salary() {
         return config.salaryDirector
     }
 }
 
 class Cashier extends Worker {
+    name() { return "Кассир" }
+
     salary() {
         return config.salaryCashier
     }
 }
 
 class Security extends Worker {
+    name() { return "Охранник" }
+
     salary() {
         return config.salarySecurity
     }

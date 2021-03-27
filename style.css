@@ -31,8 +31,27 @@ body, html {
 }
 
 .gas-marker-container {
+    cursor: pointer;
     position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.gas-card-wrapper {
+    position: absolute;
+    transition: .5s;
+    display: none;
+    bottom: 100%;
+    z-index: 1000;
+    opacity: 0;
+}
+
+.gas-card-wrapper.show {
+    opacity: 1;
+}
+
+.transparent-transition {
+    background: transparent;
+    height: 20px;
 }
