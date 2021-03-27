@@ -1,0 +1,23 @@
+{
+  "name": "emulator-lukoil",
+  "version": "1.0.0",
+  "description": "",
+  "main": "algo-front.js",
+  "scripts": {
+    "serve": "webpack serve --hot",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^4.6.0",
+    "css-loader": "^5.2.0",
+    "file-loader": "^6.2.0",
+    "jquery": "^3.6.0",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.28.0",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}

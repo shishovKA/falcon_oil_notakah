@@ -22,7 +22,7 @@ class Config {
             salarySecurity: 500,
             limitWorkPlace: 4,
             probDismiss: 0.5,
-            timeMonth: 300,
+            timeMonth: 2,
         })
 
         this.year = 12
@@ -577,7 +577,7 @@ class GasManager {
 }
 
 class FuelStorage {
-    constructor(months) {
+    init(months) {
         this.months = []
 
         for (const month of months) {
