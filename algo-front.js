@@ -500,7 +500,8 @@ class GasMain extends Gas {
         }
 
         if (mainTanker.from === "main") {
-            this.fuel += mainTanker.fuel
+            console.log(mainTanker.what)
+            this.fuel += mainTanker.what
             mainTanker.use("storage")
         }
     }
