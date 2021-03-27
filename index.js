@@ -124,7 +124,6 @@ class GasEl {
 		this.gas.staff = this.gas.staff || []
 
 		for (const staff of this.gas.staff) {
-			console.log(staff.salary())
 			gasCardStaff.append(`
                 <li class="list-group-item text-nowrap">
                     ${staff.name()}
@@ -140,9 +139,7 @@ class GasEl {
 		gasCardWorkPlaces.empty()
 
         let i = 1;
-        console.log(this.gas.workPlaces)
         for (const workPlace of this.gas.workPlaces) {
-            console.log(workPlace)
             let text = ""
             if (workPlace.isBuild === false) {
                 text = `Дней до постройки ${workPlace.beforeBuild}`
@@ -205,8 +202,6 @@ function mainloop() {
 
 		$(".fuel-input").eq(curIdx).attr("disabled", true)
 
-		console.log(gases)
-
 		for (const gasEl of gasEls) {
 			gasEl.renderStaff()
 			gasEl.renderFuel()
@@ -214,7 +209,6 @@ function mainloop() {
 		}
 
 		renderMainList();
-		console.log(curIdx)
 		curIdx += 1
 
 		if (curIdx === 12) clearInterval(timer)
