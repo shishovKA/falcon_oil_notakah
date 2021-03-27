@@ -80,6 +80,9 @@ class WorkPlace {
     constructor() {
         this.isBuild = false
         this.beforeBuild = config.timeBuildWorkPlace
+        this.beforeDestruction = config.timeBuildWorkPlace
+        this.isDestroyed = true
+        this.inDestroying = false
     }
 
     paySalary() {
@@ -216,13 +219,13 @@ class Gas {
     }
 
     payWorkPlaces() {
-        for (const workPlace of this.workPlaces) {
+        for (const workPlace of this.getWorkPlaces()) {
             workPlace.paySalary()
         }
     }
 
     earnWorkPlaces() {
-        for (const workPlace of this.workPlaces) {
+        for (const workPlace of this.getWorkPlaces()) {
             if (workPlace.isBuild) {
                 this.earnWorkPlace()
             }
@@ -255,6 +258,7 @@ class Gas {
         for (const worker of this.staff) {
             if (worker.beforeDismiss === 0) {
                 worker.isDismissed = true
+                this.staff = []
             }
         }
     }
@@ -264,6 +268,7 @@ class Gas {
 
         if (this.beforeDestruction === 0) {
             this.isDestroyed = true
+            state.amountGas -= 1
         }
     }
 
@@ -283,10 +288,20 @@ class Gas {
     destroyWorkPlace(idx) {
         const workPlace = this.workPlaces[idx]
         workPlace.beforeDestruction -= 1
+        this.inDestroying = true
 
         if (workPlace.beforeDestruction === 0) {
+            this.workPlaces[idx] = null
             workPlace.isDestroyed = true
         }
+    }
+
+    getWorkPlaces() {
+        return this.workPlaces.filter(place => Boolean(place))
+    }
+
+    getWorkPlacesLen() {
+        return this.workPlaces.filter(place => Boolean(place)).length
     }
 
     static baseMaintain() {
@@ -447,12 +462,10 @@ class GasMain extends Gas {
     }
 
     buildWorkPlace() {
-        let lastIdx = this.workPlaces.length
         const maxFuel = fuelStorage.maxFuel()
         const maxStations = Math.ceil(
             maxFuel / (config.amountCarFuel * config.amountCarMonth),
         )
-        console.log(maxFuel, config.amountCarFuel * config.amountCarMonth)
 
         this.restTimeStation -= 1
 
@@ -518,7 +531,7 @@ class GasSell extends Gas {
         if (this.fuel <= 0) {
             this.wasEmpty = true
             this.destroyGas()
-            this.dismissWorkers()
+            super.dismissWorkers()
             this.destroyWorkPlace(0)
         }
     }

@@ -19,7 +19,7 @@ class GasEl {
 	constructor(name, gas) {
 		this.gas = gas
 		this.name = name
-		this.left = 200
+		this.left = 300
 		this.right = document.documentElement.clientWidth - 200
 		this.top = 300
 		this.bottom = document.documentElement.clientHeight - 100
@@ -80,12 +80,12 @@ class GasEl {
         `)
 	}
 
-    baseInsert() {
-        this.genEl()
+	baseInsert() {
+		this.genEl()
 		this.style()
 
-        $(".map-container").append(this.el)
-    }
+		$(".map-container").append(this.el)
+	}
 
 	insert() {
 		this.genEl()
@@ -96,7 +96,7 @@ class GasEl {
 
 		this.renderStaff()
 		this.renderFuel()
-        this.renderWorkPlaces()
+		this.renderWorkPlaces()
 	}
 
 	style() {
@@ -138,25 +138,27 @@ class GasEl {
 
 		gasCardWorkPlaces.empty()
 
-        let i = 1;
-        for (const workPlace of this.gas.workPlaces) {
-            let text = ""
-            if (workPlace.isBuild === false) {
-                text = `Дней до постройки ${workPlace.beforeBuild}`
-            } else {
-                text = ""
+		let i = 1
+		for (const workPlace of this.gas.getWorkPlaces()) {
+            console.log("work", workPlace)
+			let text = ""
+			if (workPlace.isBuild === false) {
+				text = `Дней до постройки ${workPlace.beforeBuild}`
+			} else if (workPlace.inDestroying === true) {
+				text = `Дней до сноса ${workPlace.beforeDestruction}`
+			} else {
+                text = "В рабочем состоянии"
             }
 
-            gasCardWorkPlaces.append(`
+			gasCardWorkPlaces.append(`
                 <li class="list-group-item text-nowrap">
                     Обслуживающее место ${i}
                     <span class="badge badge-primary">${text}</span>
                 </li>            
             `)
 
-            i += 1
-        }
-		
+			i += 1
+		}
 	}
 
 	renderFuel() {
@@ -196,19 +198,19 @@ function initMap() {
 
 function mainloop() {
 	let curIdx = 0
-	renderMainList();
+
 	let timer = setInterval(() => {
-        world.tick()
+		world.tick()
 
 		$(".fuel-input").eq(curIdx).attr("disabled", true)
 
 		for (const gasEl of gasEls) {
 			gasEl.renderStaff()
 			gasEl.renderFuel()
-            gasEl.renderWorkPlaces()
+			gasEl.renderWorkPlaces()
 		}
 
-		renderMainList();
+        renderStatistics()
 		curIdx += 1
 
 		if (curIdx === 12) clearInterval(timer)
@@ -216,17 +218,20 @@ function mainloop() {
 }
 
 // for LIST
-function renderStationCount() {
-	$("#stationCount").text(gasEls.length)
-};
+function renderStatistics() {
+	$("#stationCount").text(state.amountGas)
+	$("#bankValue").text(state.profit)
 
-function renderBankValue() {
-	$("#bankValue").text(state.profit);
-};
+    let workPlaces = 0
+    let staff = 0 
+    for (const gas of gases) {
+        workPlaces += gas.getWorkPlacesLen()
+        staff += gas.staff.length
+    }
 
-function renderMainList() {
-	renderStationCount();
-	renderBankValue();	
+    $("#workPlaces").text(workPlaces)
+    $("#staff").text(staff)
 }
 
-renderMainList();
+renderStatistics()
+
