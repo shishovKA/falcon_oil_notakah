@@ -499,10 +499,9 @@ class GasMain extends Gas {
             this.fuel += freeTanker.what
         }
 
-        if (mainTanker.from === "main") {
-            console.log(mainTanker.what)
+        if (mainTanker.isFree() && mainTanker.from === "main") {
             this.fuel += mainTanker.what
-            mainTanker.use("storage")
+            mainTanker.use("storage", 0)
         }
     }
 }
@@ -647,7 +646,8 @@ class FuelStorage {
         const mainTanker = tankerManager.mainTanker
 
         if (mainTanker.isFree() && mainTanker.from === "storage") {
-            const fuel = this.months.shift()
+            const fuel = this.months[0]
+            this.months.shift()
 
             mainTanker.use("main", fuel)
         }

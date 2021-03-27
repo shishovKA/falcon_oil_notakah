@@ -186,9 +186,8 @@ class GasEl {
 function initMap() {
 	let fuelFields = $(".fuel-input").map((i, el) => $(el).val())
 
-    fuelFields = fuelFields.map(val => parseInt(val))
+    fuelFields = fuelFields.map((i, val) => parseInt(val))
 
-    console.log(fuelFields)
 
 	for (let i = 0; i < gases.length; i++) {
 		let name = "АЗС"
