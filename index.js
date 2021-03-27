@@ -1,7 +1,7 @@
 import "bootstrap/dist/css/bootstrap.css"
 import "./style.css"
 import $ from "jquery"
-import { config, fuelStorage, gases, world } from "./algo-front"
+import { config, state, fuelStorage, gases, world } from "./algo-front"
 
 const gasEls = []
 
@@ -11,7 +11,6 @@ $(".fuel-input").each((i, el) => {
 
 $(".start-emulation").on("click", function () {
 	$(this).addClass("disabled")
-
 	initMap()
 	mainloop()
 })
@@ -200,7 +199,7 @@ function initMap() {
 
 function mainloop() {
 	let curIdx = 0
-
+	renderMainList();
 	let timer = setInterval(() => {
         world.tick()
 
@@ -214,8 +213,26 @@ function mainloop() {
             gasEl.renderWorkPlaces()
 		}
 
+		renderMainList();
+		console.log(curIdx)
 		curIdx += 1
 
 		if (curIdx === 12) clearInterval(timer)
 	}, config.timeMonth * 1000)
 }
+
+// for LIST
+function renderStationCount() {
+	$("#stationCount").text(gasEls.length)
+};
+
+function renderBankValue() {
+	$("#bankValue").text(state.profit);
+};
+
+function renderMainList() {
+	renderStationCount();
+	renderBankValue();	
+}
+
+renderMainList();

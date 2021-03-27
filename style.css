@@ -55,3 +55,10 @@ body, html {
     background: transparent;
     height: 20px;
 }
+/* LIST STYLES */
+
+#mainList {
+    position: absolute;
+    top: 20%;
+    left: 2%
+}
