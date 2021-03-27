@@ -450,14 +450,14 @@ class GasMain extends Gas {
         let lastIdx = this.workPlaces.length
         const maxFuel = fuelStorage.maxFuel()
         const maxStations = Math.ceil(
-            maxFuel / (config.amountCarMonth * config.amountCarMonth),
+            maxFuel / (config.amountCarFuel * config.amountCarMonth),
         )
+        console.log(maxFuel, config.amountCarFuel * config.amountCarMonth)
 
         this.restTimeStation -= 1
 
         for (let i = 0; i < maxStations; i++) {
-            super.buildWorkPlace(lastIdx)
-            lastIdx += 1
+            super.buildWorkPlace(i)
         }
     }
 
