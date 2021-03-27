@@ -252,9 +252,7 @@ function renderTankers() {
             x = storage.x
             y = storage.y
         } else if (from === "main") {
-            let mainGasEl = gasEls.filter(gasEl => gasEl.gas.main === true)
-
-            console.log(mainGasEl)
+            let mainGasEl = gasEls.filter(gasEl => gasEl.gas.main === true)[0]
 
             x = mainGasEl.x
             y = mainGasEl.y

@@ -440,14 +440,6 @@ class GasFabric {
                 this.waiters += 1
                 gases.push(new GasTakeFuelWaitTanker())
             }
-
-            console.log(
-                destroyProfit,
-                sellProfit,
-                takeFuelWaitTanker,
-                "max",
-                maxProfit,
-            )
         }
 
         return gases
@@ -509,7 +501,7 @@ class GasMain extends Gas {
 
         if (mainTanker.from === "main") {
             this.fuel += mainTanker.fuel
-            mainTanker.to("storage")
+            mainTanker.use("storage")
         }
     }
 }
@@ -628,8 +620,6 @@ class GasTakeFuelWaitTanker extends Gas {
 class GasManager {
     constructor(gases) {
         this.gases = gases
-
-        console.log(gases)
     }
 
     tick() {
@@ -655,7 +645,7 @@ class FuelStorage {
     tick() {
         const mainTanker = tankerManager.mainTanker
 
-        if (mainTanker.from === "storage") {
+        if (mainTanker.isFree() && mainTanker.from === "storage") {
             const fuel = this.months.shift()
 
             mainTanker.use("main", fuel)
@@ -673,7 +663,6 @@ class World {
         gasFabric = new GasFabric()
         gases = gasFabric.createGases()
         
-        console.log(gases)
         gasManager = new GasManager(gases)
     }
 
