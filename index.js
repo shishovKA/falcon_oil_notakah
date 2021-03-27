@@ -1,9 +1,17 @@
 import "bootstrap/dist/css/bootstrap.css"
 import "./style.css"
 import $ from "jquery"
-import { config, state, fuelStorage, gases, world } from "./algo-front"
+import {
+	config,
+	state,
+	fuelStorage,
+	gases,
+	world,
+	tankerManager
+} from "./algo-front"
 
 const gasEls = []
+let storage
 
 $(".fuel-input").each((i, el) => {
 	$(el).val(0)
@@ -11,6 +19,7 @@ $(".fuel-input").each((i, el) => {
 
 $(".start-emulation").on("click", function () {
 	$(this).addClass("disabled")
+	world.start()
 	initMap()
 	mainloop()
 })
@@ -19,7 +28,7 @@ class GasEl {
 	constructor(name, gas) {
 		this.gas = gas
 		this.name = name
-		this.left = 300
+		this.left = 350
 		this.right = document.documentElement.clientWidth - 200
 		this.top = 300
 		this.bottom = document.documentElement.clientHeight - 100
@@ -140,15 +149,14 @@ class GasEl {
 
 		let i = 1
 		for (const workPlace of this.gas.getWorkPlaces()) {
-            console.log("work", workPlace)
 			let text = ""
 			if (workPlace.isBuild === false) {
 				text = `Дней до постройки ${workPlace.beforeBuild}`
 			} else if (workPlace.inDestroying === true) {
 				text = `Дней до сноса ${workPlace.beforeDestruction}`
 			} else {
-                text = "В рабочем состоянии"
-            }
+				text = "В рабочем состоянии"
+			}
 
 			gasCardWorkPlaces.append(`
                 <li class="list-group-item text-nowrap">
@@ -189,9 +197,21 @@ function initMap() {
 		gasEls.push(gas)
 	}
 
-	const storage = new GasEl("Хранилище", fuelStorage)
+	storage = new GasEl("Хранилище", fuelStorage)
 	storage.setGreyIcon()
 	storage.baseInsert()
+
+    let i = 1
+    for (const tanker of tankerManager.getTankers()) {
+		const el = $(`
+            <i class="fas fa-car tanker"><span class="badge">${i}</span></i>
+        `)
+		tanker.el = el
+        $(".map-container").append(el)
+        i += 1
+	}
+
+    renderTankers()
 
 	fuelStorage.init(fuelFields)
 }
@@ -208,13 +228,46 @@ function mainloop() {
 			gasEl.renderStaff()
 			gasEl.renderFuel()
 			gasEl.renderWorkPlaces()
+
+			if (gasEl.gas.isDestroyed) gasEl.el.remove()
 		}
 
-        renderStatistics()
+        renderTankers()
+		renderStatistics()
 		curIdx += 1
 
 		if (curIdx === 12) clearInterval(timer)
 	}, config.timeMonth * 1000)
+}
+
+function renderTankers() {
+    for (const tanker of tankerManager.getTankers()) {
+        const margin = Math.random() * (20 - 40) + 20
+		const el = tanker.el
+
+        const from = tanker.from
+        let x, y
+
+        if (from === "storage") {
+            x = storage.x
+            y = storage.y
+        } else if (from === "main") {
+            let mainGasEl = gasEls.filter(gasEl => gasEl.gas.main === true)
+
+            console.log(mainGasEl)
+
+            x = mainGasEl.x
+            y = mainGasEl.y
+        } else {
+            const gasEl = gasEls.filter(gasEl => gasEl.gas === from)[0]
+
+            x = gasEl.x
+            y = gasEl.y
+        }
+
+        el.css("left", x - margin)
+        el.css("top", y)
+	}
 }
 
 // for LIST
@@ -222,16 +275,15 @@ function renderStatistics() {
 	$("#stationCount").text(state.amountGas)
 	$("#bankValue").text(state.profit)
 
-    let workPlaces = 0
-    let staff = 0 
-    for (const gas of gases) {
-        workPlaces += gas.getWorkPlacesLen()
-        staff += gas.staff.length
-    }
+	let workPlaces = 0
+	let staff = 0
+	for (const gas of gases) {
+		workPlaces += gas.getWorkPlacesLen()
+		staff += gas.staff.length
+	}
 
-    $("#workPlaces").text(workPlaces)
-    $("#staff").text(staff)
+	$("#workPlaces").text(workPlaces)
+	$("#staff").text(staff)
 }
 
 renderStatistics()
-

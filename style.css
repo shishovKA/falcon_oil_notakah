@@ -62,3 +62,8 @@ body, html {
     top: 15%;
     left: 35px;
 }
+
+.tanker {
+    font-size: 30px;
+    position: absolute;
+}

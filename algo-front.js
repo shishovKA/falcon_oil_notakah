@@ -1,12 +1,12 @@
 class Config {
     constructor() {
         Object.assign(this, {
-            gasFuel: 30,
+            gasFuel: 50,
             storageFuel: 30,
             amountGas: 10,
             amountTankers: 2,
             costTanker: 30000,
-            timeTankerDelivery: 3,
+            timeTankerDelivery: 2,
             baseRefillCost: 3000,
             refillCost: 2000,
             rateRefillCost: 2,
@@ -15,7 +15,7 @@ class Config {
             salaryGas: 2700,
             salaryWorkPlace: 500,
             timeBuildGas: 2,
-            timeBuildWorkPlace: 1,
+            timeBuildWorkPlace: 2,
             salaryCashier: 500,
             salaryRefueller: 500,
             salaryDirector: 500,
@@ -95,7 +95,7 @@ class Tanker {
         state.amountTankers += 1
         this.from = "storage"
         this.to = null
-        this.restTime = this.timeTankerDelivery
+        this.restTime = config.timeTankerDelivery
         this.isArrived = true
         this.what = null
     }
@@ -106,7 +106,7 @@ class Tanker {
 
     use(to, what) {
         this.isArrived = false
-        this.restTime = this.timeTankerDelivery
+        this.restTime = config.timeTankerDelivery
         this.what = what
         this.to = to
     }
@@ -162,12 +162,24 @@ class TankerManager {
 
             this.mainTanker = tanker
         }
+
+        if (this.commonTankers.length === 0) {
+            const tanker = Tanker.createNew()
+
+            this.commonTankers.push(tanker)
+        }
     }
 
     tick() {
-        for (const tanker of this.tankers) {
+        const tankers = [this.mainTanker, ...this.commonTankers] 
+
+        for (const tanker of tankers) {
             tanker.tick()
         }
+    }
+
+    getTankers() {
+        return [this.mainTanker, ...this.commonTankers] 
     }
 
     getFreeTanker() {
@@ -176,7 +188,7 @@ class TankerManager {
         )
 
         if (freeTankers.length) {
-            return freeTankers[9]
+            return freeTankers[0]
         }
     }
 }
@@ -283,6 +295,8 @@ class Gas {
         } else {
             this.workPlaces[idx] = new WorkPlace()
         }
+
+        return this.workPlaces[idx]
     }
 
     destroyWorkPlace(idx) {
@@ -404,7 +418,7 @@ class GasFabric {
         const gases = []
 
         if (config.amountGas === 0) {
-            gases.push(new GasMainNew())
+            gases.push(new GasMain(false))
         } else {
             gases.push(new GasMain())
         }
@@ -440,16 +454,15 @@ class GasFabric {
     }
 }
 
-class GasMainNew extends Gas {
-    tick() {}
-}
-
 class GasMain extends Gas {
-    constructor() {
+    constructor(exists = true) {
         super()
 
-        this.tasks = [this.getFuel.bind(this), this.buildWorkPlace.bind(this)]
+        this.tasks = [this.buildGas.bind(this), this.getFuel.bind(this), this.buildWorkPlace.bind(this)]
 
+        this.main = true
+        this.exists = exists
+        this.restTimeGas = config.timeBuildGas
         this.restTimeStation = config.timeBuildWorkPlace
     }
 
@@ -461,8 +474,18 @@ class GasMain extends Gas {
         super.tick()
     }
 
+    buildGas() {
+        this.restTimeGas -= 1
+
+        if (this.restTimeGas === 0) {
+            this.exists = true
+        }
+    }
+
     buildWorkPlace() {
-        const maxFuel = fuelStorage.maxFuel()
+        if (this.exists === false) return
+
+        const maxFuel = fuelStorage.maxFuel() || config.gasFuel
         const maxStations = Math.ceil(
             maxFuel / (config.amountCarFuel * config.amountCarMonth),
         )
@@ -475,6 +498,8 @@ class GasMain extends Gas {
     }
 
     getFuel() {
+        if (this.exists === false) return
+
         const freeTanker = tankerManager.getFreeTanker()
         const mainTanker = tankerManager.mainTanker
 
@@ -512,11 +537,12 @@ class GasSell extends Gas {
         super()
         this.tasks = [
             this.dismissWorkers.bind(this),
-            this.buildWorkPlace.bind(this, 0),
+            this.buildWorkPlace.bind(this),
             this.whenEmpty.bind(this),
         ]
 
         this.wasEmpty = false
+        this.wasFirstDismiss = false
     }
 
     tick() {
@@ -525,6 +551,14 @@ class GasSell extends Gas {
         }
 
         super.tick()
+    }
+
+    buildWorkPlace() {
+        const workPlace = super.buildWorkPlace(0)
+
+        if (workPlace.beforeBuild === 0) {
+            this.hireWorkers()
+        }
     }
 
     whenEmpty() {
@@ -537,9 +571,18 @@ class GasSell extends Gas {
     }
 
     dismissWorkers() {
-        if (config.timeBuildWorkPlace >= 2) {
+        if (config.timeBuildWorkPlace >= 2 && this.wasFirstDismiss === false) {
+            this.wasFirstDismiss = true
             super.dismissWorkers()
         }
+    }
+
+    hireWorkers() {
+        this.staff = [
+            new Cashier(),
+            new Director(),
+            new Security(),
+        ]
     }
 }
 
@@ -570,6 +613,7 @@ class GasTakeFuelWaitTanker extends Gas {
 
         if (freeTanker && freeTanker.from === this) {
             freeTanker.use("main", this.fuel)
+            this.fuel = 0
             this.tankerProcessed = true
         } else if (freeTanker) {
             freeTanker.use(this)
@@ -622,23 +666,33 @@ class FuelStorage {
 class World {
     constructor() {}
 
+    start() {
+        fuelStorage = new FuelStorage()
+        tankerManager = new TankerManager()
+        
+        gasFabric = new GasFabric()
+        gases = gasFabric.createGases()
+        
+        console.log(gases)
+        gasManager = new GasManager(gases)
+    }
+
     tick() {
         state.curMonth += 1
         fuelStorage.tick()
         gasManager.tick()
+        tankerManager.tick()
     }
 }
 
-const fuelStorage = new FuelStorage([10, 15, 0, 5])
-const config = new Config()
-const state = new State()
-const tankerManager = new TankerManager()
+let fuelStorage
+let config = new Config()
+let state = new State()
+let tankerManager
+let gasFabric
+let gases = []
+let gasManager
 
-const gasFabric = new GasFabric()
-const gases = gasFabric.createGases()
-
-const gasManager = new GasManager(gases)
-
-const world = new World()
+let world = new World()
 
 export { fuelStorage, config, state, tankerManager, gases, gasManager, world }
